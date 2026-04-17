@@ -17,7 +17,7 @@ export default function DrawingCanvas({ onSave, onClose }) {
       onClose();
       return;
     }
-    const dataUrl = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
+    const dataUrl = sigCanvas.current.getCanvas().toDataURL('image/png');
     onSave(dataUrl);
   };
 
