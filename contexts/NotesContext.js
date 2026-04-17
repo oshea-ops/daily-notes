@@ -6,10 +6,21 @@ const NotesContext = createContext();
 
 export function NotesProvider({ children }) {
   const [notes, setNotes] = useState([]);
+  const [sections, setSections] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const savedNotes = localStorage.getItem('daily_notes');
+    const savedSections = localStorage.getItem('daily_sections');
+    
+    if (savedSections) {
+      try {
+        setSections(JSON.parse(savedSections));
+      } catch (e) {
+        console.error('Failed to parse sections from local storage');
+      }
+    }
+
     if (savedNotes) {
       try {
         setNotes(JSON.parse(savedNotes));
@@ -34,8 +45,9 @@ export function NotesProvider({ children }) {
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('daily_notes', JSON.stringify(notes));
+      localStorage.setItem('daily_sections', JSON.stringify(sections));
     }
-  }, [notes, isLoaded]);
+  }, [notes, sections, isLoaded]);
 
   const addNote = (note) => {
     // Add default status if missing
@@ -80,8 +92,22 @@ export function NotesProvider({ children }) {
     });
   };
 
+  const addSection = (section) => {
+    setSections(prev => [...prev, section]);
+  };
+
+  const deleteSection = (id) => {
+    setSections(prev => prev.filter(s => s.id !== id));
+    // Optionally: remove sectionId from all notes that had it
+    setNotes(prev => prev.map(note => note.sectionId === id ? { ...note, sectionId: null } : note));
+  };
+
   return (
-    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, emptyTrash, reorderNotes, isLoaded }}>
+    <NotesContext.Provider value={{ 
+      notes, addNote, updateNote, deleteNote, emptyTrash, reorderNotes, 
+      sections, addSection, deleteSection,
+      isLoaded 
+    }}>
       {children}
     </NotesContext.Provider>
   );

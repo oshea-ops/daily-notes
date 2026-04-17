@@ -19,8 +19,10 @@ const COLORS = [
 ];
 
 export default function NoteCard({ note }) {
-  const { updateNote, deleteNote } = useNotes();
+  const { updateNote, deleteNote, sections } = useNotes();
   const [showPalette, setShowPalette] = useState(false);
+
+  const section = sections ? sections.find(s => s.id === note.sectionId) : null;
 
   const {
     attributes,
@@ -82,6 +84,8 @@ export default function NoteCard({ note }) {
     }
   };
 
+  const isCustomLightColor = note.color && note.color.startsWith('#');
+
   return (
     <motion.div 
       layout
@@ -89,7 +93,7 @@ export default function NoteCard({ note }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
-      className={styles.card} 
+      className={`${styles.card} ${section ? styles.hasSection : ''} ${isCustomLightColor ? styles.lightBackground : ''}`}
       style={style}
       ref={setNodeRef}
     >
@@ -100,6 +104,12 @@ export default function NoteCard({ note }) {
       >
         <GripHorizontal size={16} />
       </div>
+
+      {section && (
+        <div className={styles.sectionBadge} style={{ backgroundColor: section.color }}>
+          {section.name}
+        </div>
+      )}
 
       <button 
         className={`${styles.iconButton} ${styles.pinButton} ${note.pinned ? styles.pinned : ''}`}

@@ -40,7 +40,15 @@ export default function NoteList({ searchQuery = '', filterStatus = 'active' }) 
   const filteredNotes = notes.filter(note => {
     // Default status is 'active' if undefined for old notes
     const status = note.status || 'active';
-    if (status !== filterStatus) return false;
+    const isSectionFilter = filterStatus.startsWith('section:');
+
+    if (isSectionFilter) {
+      const targetSectionId = filterStatus.split(':')[1];
+      // Do not show trashed notes in sections, and only show notes matching the sectionId
+      if (status === 'trash' || note.sectionId !== targetSectionId) return false;
+    } else {
+      if (status !== filterStatus) return false;
+    }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -56,9 +64,14 @@ export default function NoteList({ searchQuery = '', filterStatus = 'active' }) 
   const unpinnedNotes = filteredNotes.filter(note => !note.pinned);
 
   if (filteredNotes.length === 0) {
+    const isSectionFilter = filterStatus.startsWith('section:');
+    let emptyMsg = `No notes in ${filterStatus}.`;
+    if (isSectionFilter) emptyMsg = 'No notes in this notebook yet.';
+    if (searchQuery) emptyMsg = 'No notes match your search.';
+
     return (
       <div style={{ textAlign: 'center', marginTop: '64px', color: 'var(--text-secondary)' }}>
-        <p>{searchQuery ? 'No notes match your search.' : `No notes in ${filterStatus}.`}</p>
+        <p>{emptyMsg}</p>
       </div>
     );
   }

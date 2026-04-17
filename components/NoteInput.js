@@ -8,8 +8,8 @@ import { parseAlarmFromText } from '../utils/parseAlarms';
 import DrawingCanvas from './DrawingCanvas';
 import styles from './NoteInput.module.css';
 
-export default function NoteInput() {
-  const { addNote } = useNotes();
+export default function NoteInput({ currentSectionId = null }) {
+  const { addNote, sections } = useNotes();
   const [isExpanded, setIsExpanded] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -189,7 +189,8 @@ export default function NoteInput() {
         labels: extractLabels(content),
         image: attachment,
         audio: audioBlob,
-        location: locationCoords
+        location: locationCoords,
+        sectionId: currentSectionId
       });
       setTitle('');
       setContent('');

@@ -69,3 +69,113 @@
   padding: 24px;
   width: 100%;
 }
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.addSectionBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addSectionBtn:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-main);
+}
+
+.colorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.addSectionForm {
+  padding: 8px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionInput {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+.colorPicker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.colorChoice {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid rgba(128,128,128,0.3);
+  transition: transform 0.1s;
+}
+
+.colorChoice:hover {
+  transform: scale(1.2);
+}
+
+.saveSectionBtn {
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sectionNavItem {
+  justify-content: space-between;
+  padding-right: 12px;
+}
+
+.deleteSectionBtn {
+  opacity: 0;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s, background-color 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.sectionNavItem:hover .deleteSectionBtn {
+  opacity: 1;
+}
+
+.deleteSectionBtn:hover {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: var(--color-red);
+}
