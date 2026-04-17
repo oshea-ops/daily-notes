@@ -16,6 +16,17 @@ export function NotesProvider({ children }) {
       } catch (e) {
         console.error('Failed to parse notes from local storage');
       }
+    } else {
+      const tutorialNote = {
+        id: 'tutorial-note-1',
+        content: "Welcome to **Daily Notes**! 🎉\n\nHere are some of the premium features you can use:\n\n* **Markdown Support**: You can use *italics*, **bold**, or create lists!\n* **Smart Labels**: Try typing a hashtag like #tutorial or #ideas to automatically categorize your notes.\n* **Smart Alarms**: Type something like \"Remind me to check the oven in 5 minutes\" and the app will automatically suggest an alarm!\n* **Images**: Click the image icon to attach pictures to your notes.\n* **Archive & Trash**: Keep your active view clean by moving old notes to the archive or trash bin.\n\nEnjoy taking notes!",
+        color: 'var(--surface-hover)',
+        isPinned: true,
+        createdAt: new Date().toISOString(),
+        status: 'active',
+        labels: ['tutorial']
+      };
+      setNotes([tutorialNote]);
     }
     setIsLoaded(true);
   }, []);
