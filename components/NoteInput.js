@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Bell, BellOff, Image as ImageIcon, X, Palette, MapPin, Radio } from 'lucide-react';
+import { Bell, BellOff, Image as ImageIcon, X, Palette, MapPin, Radio } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNotes } from '../contexts/NotesContext';
 import { parseAlarmFromText } from '../utils/parseAlarms';
@@ -13,7 +13,7 @@ export default function NoteInput({ currentSectionId = null }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
+
   const [suggestedAlarm, setSuggestedAlarm] = useState(null);
   const [attachment, setAttachment] = useState(null);
   const [showDrawingCanvas, setShowDrawingCanvas] = useState(false);
@@ -23,44 +23,12 @@ export default function NoteInput({ currentSectionId = null }) {
   
   const contentRef = useRef(null);
   const containerRef = useRef(null);
-  const recognitionRef = useRef(null);
+
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
   useEffect(() => {
-    // Setup Speech Recognition
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-
-        recognitionRef.current.onresult = (event) => {
-          let currentTranscript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              currentTranscript += transcript + ' ';
-            }
-          }
-          if (currentTranscript) {
-            setContent((prev) => prev + currentTranscript);
-          }
-        };
-
-        recognitionRef.current.onerror = (event) => {
-          console.error('Speech recognition error', event.error);
-          setIsRecording(false);
-        };
-
-        recognitionRef.current.onend = () => {
-          setIsRecording(false);
-        };
-      }
-    }
-
     // Handle click outside to close
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -89,18 +57,6 @@ export default function NoteInput({ currentSectionId = null }) {
       setSuggestedAlarm(null);
     }
   }, [content]);
-
-  const toggleRecording = (e) => {
-    e.preventDefault();
-    if (isRecording) {
-      recognitionRef.current?.stop();
-    } else {
-      setIsExpanded(true);
-      setContent(prev => prev + (prev && !prev.endsWith(' ') ? ' ' : ''));
-      recognitionRef.current?.start();
-      setIsRecording(true);
-    }
-  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -200,9 +156,6 @@ export default function NoteInput({ currentSectionId = null }) {
       setLocationCoords(null);
     }
     setIsExpanded(false);
-    if (isRecording) {
-      recognitionRef.current?.stop();
-    }
   };
 
   return (
@@ -220,7 +173,7 @@ export default function NoteInput({ currentSectionId = null }) {
         
         <textarea
           ref={contentRef}
-          placeholder="Take a note... (or use voice)"
+          placeholder="Take a note..."
           className={styles.contentInput}
           value={content}
           onClick={() => setIsExpanded(true)}
@@ -267,14 +220,6 @@ export default function NoteInput({ currentSectionId = null }) {
         {isExpanded && (
           <div className={styles.actions}>
             <div className={styles.iconButtons}>
-              <button 
-                type="button" 
-                className={`${styles.iconButton} ${isRecording ? styles.recording : ''}`}
-                onClick={toggleRecording}
-                title={isRecording ? "Stop recording" : "Start voice input"}
-              >
-                {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-              </button>
               <button 
                 type="button" 
                 className={styles.iconButton}
