@@ -1,0 +1,90 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background-color: var(--background);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+
+/* Glassmorphism effect if browser supports it */
+@supports (backdrop-filter: blur(8px)) {
+  .header {
+    background-color: transparent;
+    backdrop-filter: blur(12px);
+    /* For light mode we might want slightly opaque white, for dark mode slightly opaque black */
+  }
+}
+:root[data-theme='light'] .header {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+:root[data-theme='dark'] .header {
+  background-color: rgba(32, 33, 36, 0.85);
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.searchContainer {
+  flex: 1;
+  max-width: 600px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-secondary);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-main);
+  font-size: 1rem;
+  transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  background-color: var(--background);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  border-color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconButton {
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconButton:hover {
+  background-color: rgba(128, 128, 128, 0.15);
+  color: var(--text-main);
+}

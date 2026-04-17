@@ -1,0 +1,37 @@
+.listContainer {
+  margin-top: 32px;
+}
+
+.sectionTitle {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.masonryGrid {
+  column-count: 1;
+  column-gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 600px) {
+  .masonryGrid {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 900px) {
+  .masonryGrid {
+    column-count: 3;
+  }
+}
+
+@media (min-width: 1200px) {
+  .masonryGrid {
+    column-count: 4;
+  }
+}
