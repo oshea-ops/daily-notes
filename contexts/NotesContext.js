@@ -66,8 +66,22 @@ export function NotesProvider({ children }) {
     setNotes(prev => prev.filter(note => note.status !== 'trash'));
   };
 
+  const reorderNotes = (activeId, overId) => {
+    setNotes((prev) => {
+      const oldIndex = prev.findIndex((n) => n.id === activeId);
+      const newIndex = prev.findIndex((n) => n.id === overId);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newNotes = [...prev];
+        const [movedItem] = newNotes.splice(oldIndex, 1);
+        newNotes.splice(newIndex, 0, movedItem);
+        return newNotes;
+      }
+      return prev;
+    });
+  };
+
   return (
-    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, emptyTrash, isLoaded }}>
+    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, emptyTrash, reorderNotes, isLoaded }}>
       {children}
     </NotesContext.Provider>
   );

@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Bell, BellOff, Image as ImageIcon, X } from 'lucide-react';
+import { Mic, MicOff, Bell, BellOff, Image as ImageIcon, X, Palette, MapPin, Radio } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNotes } from '../contexts/NotesContext';
 import { parseAlarmFromText } from '../utils/parseAlarms';
+import DrawingCanvas from './DrawingCanvas';
 import styles from './NoteInput.module.css';
 
 export default function NoteInput() {
@@ -15,11 +16,17 @@ export default function NoteInput() {
   const [isRecording, setIsRecording] = useState(false);
   const [suggestedAlarm, setSuggestedAlarm] = useState(null);
   const [attachment, setAttachment] = useState(null);
+  const [showDrawingCanvas, setShowDrawingCanvas] = useState(false);
+  const [locationCoords, setLocationCoords] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
   
   const contentRef = useRef(null);
   const containerRef = useRef(null);
   const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     // Setup Speech Recognition
@@ -112,25 +119,84 @@ export default function NoteInput() {
     return matches ? matches.map(m => m.slice(1)) : [];
   };
 
+  const handleAddLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setLocationCoords({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setIsExpanded(true);
+      }, (err) => {
+        console.error("Location error:", err);
+      });
+    }
+  };
+
+  const toggleAudioRecording = async (e) => {
+    e.preventDefault();
+    if (isRecordingAudio) {
+      mediaRecorderRef.current?.stop();
+      setIsRecordingAudio(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        
+        mediaRecorderRef.current.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        
+        mediaRecorderRef.current.onstop = () => {
+          const audioBlobObj = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlobObj);
+          reader.onloadend = () => {
+            setAudioBlob(reader.result);
+          };
+          // Stop all tracks to release microphone
+          stream.getTracks().forEach(track => track.stop());
+        };
+        
+        mediaRecorderRef.current.start();
+        setIsRecordingAudio(true);
+        setIsExpanded(true);
+      } catch (err) {
+        console.error("Audio record error:", err);
+      }
+    }
+  };
+
+  const handleSaveDrawing = (dataUrl) => {
+    setAttachment(dataUrl);
+    setShowDrawingCanvas(false);
+    setIsExpanded(true);
+  };
+
   const handleSave = () => {
-    if (title.trim() || content.trim() || attachment) {
+    if (title.trim() || content.trim() || attachment || audioBlob || locationCoords) {
       addNote({
         id: uuidv4(),
         title: title.trim(),
         content: content.trim(),
-        color: 'var(--color-default)',
+        color: 'var(--surface)',
         pinned: false,
         createdAt: new Date().toISOString(),
         alarm: suggestedAlarm ? suggestedAlarm.toISOString() : null,
         alarmTriggered: false,
         status: 'active',
         labels: extractLabels(content),
-        image: attachment
+        image: attachment,
+        audio: audioBlob,
+        location: locationCoords
       });
       setTitle('');
       setContent('');
       setSuggestedAlarm(null);
       setAttachment(null);
+      setAudioBlob(null);
+      setLocationCoords(null);
     }
     setIsExpanded(false);
     if (isRecording) {
@@ -169,6 +235,21 @@ export default function NoteInput() {
           </div>
         )}
 
+        {isExpanded && locationCoords && (
+          <div className={styles.alarmSuggestion}>
+            <MapPin size={14} />
+            Location Geofence Active
+            <button type="button" onClick={() => setLocationCoords(null)} style={{ background: 'transparent', border: 'none', marginLeft: '8px', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={12} /></button>
+          </div>
+        )}
+
+        {audioBlob && (
+          <div style={{ marginTop: '12px' }}>
+            <audio controls src={audioBlob} style={{ height: '36px', width: '100%' }} />
+            <button type="button" onClick={() => setAudioBlob(null)} style={{ fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>Remove Audio</button>
+          </div>
+        )}
+
         {attachment && (
           <div style={{ position: 'relative', marginTop: '12px', width: 'fit-content' }}>
             <img src={attachment} alt="Attachment" style={{ maxHeight: '200px', borderRadius: '8px' }} />
@@ -201,6 +282,30 @@ export default function NoteInput() {
               >
                 <ImageIcon size={20} />
               </button>
+              <button 
+                type="button" 
+                className={`${styles.iconButton} ${isRecordingAudio ? styles.recording : ''}`}
+                onClick={toggleAudioRecording}
+                title={isRecordingAudio ? "Stop Audio Recording" : "Record Audio Memo"}
+              >
+                <Radio size={20} />
+              </button>
+              <button 
+                type="button" 
+                className={styles.iconButton}
+                onClick={() => setShowDrawingCanvas(true)}
+                title="Draw sketch"
+              >
+                <Palette size={20} />
+              </button>
+              <button 
+                type="button" 
+                className={`${styles.iconButton} ${locationCoords ? styles.activeIcon : ''}`}
+                onClick={handleAddLocation}
+                title="Add Location Alarm"
+              >
+                <MapPin size={20} />
+              </button>
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -215,6 +320,13 @@ export default function NoteInput() {
           </div>
         )}
       </form>
+
+      {showDrawingCanvas && (
+        <DrawingCanvas 
+          onSave={handleSaveDrawing} 
+          onClose={() => setShowDrawingCanvas(false)} 
+        />
+      )}
     </div>
   );
 }

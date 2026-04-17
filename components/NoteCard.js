@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Pin, Trash2, Palette, BellRing, Bell, Archive, RefreshCw } from 'lucide-react';
+import { Pin, Trash2, Palette, BellRing, Bell, Archive, RefreshCw, GripHorizontal, MapPin } from 'lucide-react';
 import { useNotes } from '../contexts/NotesContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import styles from './NoteCard.module.css';
 
 const COLORS = [
@@ -19,6 +21,22 @@ const COLORS = [
 export default function NoteCard({ note }) {
   const { updateNote, deleteNote } = useNotes();
   const [showPalette, setShowPalette] = useState(false);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: note.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    backgroundColor: note.color,
+  };
 
   const togglePin = () => {
     updateNote(note.id, { pinned: !note.pinned });
@@ -33,6 +51,37 @@ export default function NoteCard({ note }) {
     updateNote(note.id, { status: note.status === 'archived' ? 'active' : 'archived' });
   };
 
+  const handleCheckboxToggle = (index, checked) => {
+    let matchCount = 0;
+    const newContent = note.content.replace(/\[([ xX])\]/g, (match) => {
+      if (matchCount === index) {
+        matchCount++;
+        return checked ? '[x]' : '[ ]';
+      }
+      matchCount++;
+      return match;
+    });
+    updateNote(note.id, { content: newContent });
+  };
+
+  let checkboxIndex = 0;
+  const markdownComponents = {
+    input: ({ node, checked, ...props }) => {
+      if (props.type === 'checkbox') {
+        const currentIndex = checkboxIndex++;
+        return (
+          <input 
+            type="checkbox" 
+            checked={checked} 
+            onChange={(e) => handleCheckboxToggle(currentIndex, e.target.checked)}
+            {...props} 
+          />
+        );
+      }
+      return <input {...props} />;
+    }
+  };
+
   return (
     <motion.div 
       layout
@@ -41,8 +90,17 @@ export default function NoteCard({ note }) {
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
       className={styles.card} 
-      style={{ backgroundColor: note.color }}
+      style={style}
+      ref={setNodeRef}
     >
+      <div 
+        className={styles.dragHandle} 
+        {...attributes} 
+        {...listeners}
+      >
+        <GripHorizontal size={16} />
+      </div>
+
       <button 
         className={`${styles.iconButton} ${styles.pinButton} ${note.pinned ? styles.pinned : ''}`}
         onClick={togglePin}
@@ -54,10 +112,14 @@ export default function NoteCard({ note }) {
         <img src={note.image} alt="Attachment" className={styles.attachmentImage} />
       )}
 
+      {note.audio && (
+        <audio controls src={note.audio} className={styles.audioPlayer} />
+      )}
+
       {note.title && <div className={styles.title}>{note.title}</div>}
       {note.content && (
         <div className={styles.content}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{note.content}</ReactMarkdown>
         </div>
       )}
       
@@ -73,6 +135,13 @@ export default function NoteCard({ note }) {
         <div className={styles.alarmBadge}>
           {note.alarmTriggered ? <Bell size={12} /> : <BellRing size={12} />}
           {format(new Date(note.alarm), 'MMM d, h:mm a')}
+        </div>
+      )}
+
+      {note.location && (
+        <div className={styles.locationBadge}>
+          <MapPin size={12} />
+          {note.location.lat.toFixed(4)}, {note.location.lng.toFixed(4)}
         </div>
       )}
 

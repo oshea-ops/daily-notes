@@ -13,25 +13,10 @@
 }
 
 .masonryGrid {
-  column-count: 1;
-  column-gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-auto-rows: max-content;
+  gap: 16px;
   margin-bottom: 32px;
-}
-
-@media (min-width: 600px) {
-  .masonryGrid {
-    column-count: 2;
-  }
-}
-
-@media (min-width: 900px) {
-  .masonryGrid {
-    column-count: 3;
-  }
-}
-
-@media (min-width: 1200px) {
-  .masonryGrid {
-    column-count: 4;
-  }
+  align-items: start;
 }
